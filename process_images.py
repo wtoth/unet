@@ -1,4 +1,6 @@
 from PIL import Image
+import os
+import pandas as pd
 
 tifs = ["test-labels.tif", "test-volume.tif", "train-labels.tif", "train-volume.tif"]
 
@@ -17,3 +19,12 @@ for tif in tifs:
         image.seek(i)
         image.save(f"{destination_directory}/image_{i}.tif")
     
+data = []
+
+for test_or_train in ["test", "train"]:
+    directory = f"processed_data/{test_or_train}"
+    for file in os.listdir(f"{directory}/images"):
+        data.append([f"{directory}/images/{file}", f"{directory}/labels/{file}"])
+
+    df = pd.DataFrame(data, columns=["images", "labels"])
+    df.to_csv(f"processed_data/{test_or_train}_dataset.csv")
