@@ -5,13 +5,13 @@ from torch.utils.data import DataLoader
 from torchvision.transforms import v2
 from tqdm import tqdm
 from dataset import ISBIDataset
-from unet import UNetModel
+from unet import UNet
 import wandb
 
 
-class AlexNetModel:
+class UNetModel:
     def __init__(self, device,log=True):
-        self.model = UNetModel().to(device)
+        self.model = UNet().to(device)
         self.device = device
         self.log = log
 
@@ -36,15 +36,17 @@ class AlexNetModel:
             running_loss = 0.0
             for i, (input, labels) in enumerate(tqdm(train_dataloader, desc=f"Epoch {epoch+1}")):
                 assert self.model.training, 'make sure the network is in train mode with `.train()`'
-                # print(input.shape)
+
                 optimizer.zero_grad() # zero out the gradient from previous batches
-
+                
                 input = input.to(self.device)
-                labels = labels.to(self.device)
+                labels = labels.squeeze(1).long().to(self.device)
 
-                outputs = self.model(input) # Predictions
+                output = self.model(input) # Predictions
 
-                loss = F.cross_entropy(outputs, labels)
+                # class_weights = torch.tensor([0.3, 0.7]).to(self.device) 
+                # loss = F.cross_entropy(output, labels, weight=class_weights)
+                loss = F.cross_entropy(output, labels)
 
                 loss.backward() # backprop step
                 optimizer.step() # SGD optimizing step
@@ -55,29 +57,29 @@ class AlexNetModel:
                 
                 global_steps += 1
             
-            validation_loss, validation_accuracy, validation_top_5_accuracy = self.validation(val_dataset, val_dataloader) 
+            validation_loss, validation_pixel_accuracy = self.validation(val_dataloader) 
 
-            print(f"Epoch: {epoch} Training Loss: {running_loss/len(train_dataloader)} Validation Loss: {validation_loss}")
+            print(f"Epoch: {epoch} Training Loss: {running_loss/len(train_dataloader)} Validation Loss: {validation_loss} Validation Pixel Accuracy: {validation_pixel_accuracy}")
             if self.log:
                 wandb_log.log({
                     "validation_loss": validation_loss,
-                    "validation_accuracy": validation_accuracy,
-                    "validation_top_5_accuracy": validation_top_5_accuracy
+                    "validation_pixel_accuracy": validation_pixel_accuracy
                 })
             if validation_loss < best_loss:
+                print("***saving best weights***")
                 torch.save(self.model.state_dict(), "model_weights/best_val_loss.pt")
                 best_loss = validation_loss
 
-    def validation(self, val_dataset, val_dataloader):
+    def validation(self, val_dataloader):
         total_loss = 0
-        correct = 0
-        top_5_correct = 0
+        total_correct = 0
+        total_pixels = 0
 
         self.model.eval() # set model to eval mode so the weights won't get changed
         with torch.no_grad():
             for input, labels in tqdm(val_dataloader, desc="Validation Run"):
                 input = input.to(self.device)
-                labels = labels.to(self.device)
+                labels = labels.squeeze(1).long().to(self.device)
 
                 outputs = self.model(input) 
 
@@ -86,15 +88,13 @@ class AlexNetModel:
 
                 # get accuracy
                 preds = outputs.argmax(dim=1)
-                correct += (preds == labels).sum().item()
-                top_5_preds = torch.topk(outputs, 5, dim=1).indices
-                top_5_correct += (top_5_preds == labels.unsqueeze(1)).any(dim=1).sum().item()
+                total_correct += (preds == labels).sum().item()
+                total_pixels += labels.numel()
 
         avg_loss = total_loss / len(val_dataloader)  
-        accuracy = correct / len(val_dataset)
-        top_5_accuracy = top_5_correct / len(val_dataset)
+        pixel_accuracy = total_correct / total_pixels
 
-        return avg_loss, accuracy, top_5_accuracy
+        return avg_loss, pixel_accuracy
     
     def init_logging(self, learning_rate, momentum, weight_decay, num_epochs):
         wandb_log = wandb.init(
