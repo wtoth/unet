@@ -33,7 +33,8 @@ class UNet(nn.Module):
             nn.Conv2d(in_channels=512, out_channels=1024,kernel_size=3, padding=1),
             nn.ReLU(True),
             nn.Conv2d(in_channels=1024, out_channels=1024,kernel_size=3, padding=1),
-            nn.ReLU(True)
+            nn.ReLU(True),
+            nn.Dropout(0.3) # Section 3.1 "Dropout layers at teh end fo the contracting path"
         )
         self.max_pool = nn.MaxPool2d(2, stride=2)
         
