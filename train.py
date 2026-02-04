@@ -59,7 +59,7 @@ class UNetModel:
             
             validation_loss, validation_pixel_accuracy = self.validation(val_dataloader) 
 
-            print(f"Epoch: {epoch} Training Loss: {running_loss/len(train_dataloader)} Validation Loss: {validation_loss} Validation Pixel Accuracy: {validation_pixel_accuracy}")
+            print(f"Epoch: {epoch+1} Training Loss: {running_loss/len(train_dataloader)} Validation Loss: {validation_loss} Validation Pixel Accuracy: {validation_pixel_accuracy}")
             if self.log:
                 wandb_log.log({
                     "validation_loss": validation_loss,

@@ -16,15 +16,17 @@ def main():
         device = torch.device("cpu")
 
     # Hyperparams
-    num_epochs = 10
-    batch_size = 16
-    learning_rate = 0.01
+    num_epochs = 25
+    batch_size = 6 # keeping small to save in memory
+    learning_rate = 0.02
     momentum = 0.9
     weight_decay = 5e-4
 
-    transforms = v2.Compose([
-        v2.RandomHorizontalFlip(p=0.5),
+    transforms = v2.Compose([   
+        v2.RandomAffine(degrees=180, translate=(0.1,0.1)), # "shift and rotation invariance"
+        v2.ColorJitter(brightness=0.2, contrast=0.2), # "robustness to gray value variations"
         v2.PILToTensor(),
+        v2.ElasticTransform(alpha=50.0, sigma=10.0) # "random elastic deformations"
     ])
     validation_transforms = v2.Compose([
         v2.PILToTensor(),
