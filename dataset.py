@@ -16,16 +16,15 @@ class ISBIDataset(Dataset):
     
     def __getitem__(self, idx: int) -> tuple:
         image_path = self.image_directory.iloc[idx, self.image_directory.columns.get_loc("images")]
-        label_path = self.image_directory.iloc[idx, self.image_directory.columns.get_loc("labels")]
+        mask_path = self.image_directory.iloc[idx, self.image_directory.columns.get_loc("labels")]
         image = Image.open(image_path)
-        label = Image.open(label_path)
+        mask = Image.open(mask_path)
 
 
         if self.transform:
-            image = self.transform(image)
-        pil_to_tensor = v2.PILToTensor()
-        image = pil_to_tensor(image)
-        label = pil_to_tensor(label)
+            image, mask = self.transform(image, mask)
 
+        # normalize images
         image = image.float() / 255.0
-        return image, label
+        mask = mask.float() / 255.0 
+        return image, mask
