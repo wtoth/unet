@@ -7,9 +7,10 @@ from PIL import Image
 
 
 class ISBIDataset(Dataset):
-    def __init__(self, dataset, transform=None):
+    def __init__(self, dataset, spatial_transforms=None, color_transforms=None):
         self.image_directory = pd.read_csv(dataset)
-        self.transform = transform
+        self.spatial_transforms = spatial_transforms
+        self.color_transforms = color_transforms
 
     def __len__(self) -> int:
         return len(self.image_directory)
@@ -21,8 +22,13 @@ class ISBIDataset(Dataset):
         mask = Image.open(mask_path)
 
 
-        if self.transform:
-            image, mask = self.transform(image, mask)
+        if self.spatial_transforms:
+            # spatial transforms applied to both
+            image, mask = self.spatial_transforms(image, mask)
+
+        if self.color_transforms:
+            # color transforms applied only to image
+            image = self.color_transforms(image)
 
         # normalize images
         image = image.float() / 255.0

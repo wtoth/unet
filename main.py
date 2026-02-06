@@ -17,23 +17,27 @@ def main():
 
     # Hyperparams
     num_epochs = 25
-    batch_size = 6 # keeping small to save in memory
-    learning_rate = 0.02
+    batch_size = 4 # keeping small to save in memory
+    learning_rate = 0.01
     momentum = 0.9
-    weight_decay = 5e-4
+    weight_decay = 5e-3
 
-    transforms = v2.Compose([   
-        v2.RandomAffine(degrees=180, translate=(0.1,0.1)), # "shift and rotation invariance"
-        v2.ColorJitter(brightness=0.2, contrast=0.2), # "robustness to gray value variations"
-        v2.PILToTensor(),
-        v2.ElasticTransform(alpha=50.0, sigma=10.0) # "random elastic deformations"
+    spatial_transforms = v2.Compose([   
+    v2.RandomAffine(degrees=180, translate=(0.1, 0.1)),
+    v2.PILToTensor(),
+    v2.ElasticTransform(alpha=100.0, sigma=10.0)
     ])
+
+    color_transforms = v2.Compose([
+        v2.ColorJitter(brightness=0.1, contrast=0.1),
+    ])
+
     validation_transforms = v2.Compose([
         v2.PILToTensor(),
     ])
 
     alexnet_model = UNetModel(device, log=False)
-    alexnet_model.train(root_directory, num_epochs, batch_size, learning_rate, momentum, weight_decay, transforms, validation_transforms)
+    alexnet_model.train(root_directory, num_epochs, batch_size, learning_rate, momentum, weight_decay, spatial_transforms, color_transforms, validation_transforms)
 
 if __name__ == "__main__":
     main()

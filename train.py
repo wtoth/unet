@@ -15,16 +15,16 @@ class UNetModel:
         self.device = device
         self.log = log
 
-    def train(self, root_directory, num_epochs, batch_size, learning_rate, momentum, weight_decay, transforms, validation_transforms):
+    def train(self, root_directory, num_epochs, batch_size, learning_rate, momentum, weight_decay, spatial_transforms, color_transforms, validation_transforms):
         if self.log:
             wandb_log = self.init_logging()
 
         optimizer = torch.optim.SGD(self.model.parameters(), lr=learning_rate, momentum=momentum, weight_decay=weight_decay)
         
         # Create Datasets 
-        training_dataset = ISBIDataset(dataset=f"{root_directory}/train_dataset.csv", transform=transforms)
+        training_dataset = ISBIDataset(dataset=f"{root_directory}/train_dataset.csv", spatial_transforms=spatial_transforms, color_transforms=color_transforms)
         train_dataloader = DataLoader(training_dataset, batch_size=batch_size, shuffle=True)
-        val_dataset = ISBIDataset(dataset=f"{root_directory}/test_dataset.csv", transform=validation_transforms)
+        val_dataset = ISBIDataset(dataset=f"{root_directory}/test_dataset.csv", spatial_transforms=validation_transforms)
         val_dataloader = DataLoader(val_dataset, batch_size=batch_size, shuffle=True)
         
         best_loss = float("inf")
