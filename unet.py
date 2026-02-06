@@ -46,20 +46,29 @@ class UNet(nn.Module):
 
         self.expansion1 = nn.Sequential(
             nn.Conv2d(in_channels=1024, out_channels=512, kernel_size=3, padding=1),
-            nn.Conv2d(in_channels=512, out_channels=512, kernel_size=3, padding=1)
+            nn.ReLU(True),
+            nn.Conv2d(in_channels=512, out_channels=512, kernel_size=3, padding=1),
+            nn.ReLU(True),
         )
         self.expansion2 = nn.Sequential(
             nn.Conv2d(in_channels=512, out_channels=256, kernel_size=3, padding=1),
-            nn.Conv2d(in_channels=256, out_channels=256, kernel_size=3, padding=1)
+            nn.ReLU(True),
+            nn.Conv2d(in_channels=256, out_channels=256, kernel_size=3, padding=1),
+            nn.ReLU(True),
         )
         self.expansion3 = nn.Sequential(
             nn.Conv2d(in_channels=256, out_channels=128, kernel_size=3, padding=1),
-            nn.Conv2d(in_channels=128, out_channels=128, kernel_size=3, padding=1)
+            nn.ReLU(True),
+            nn.Conv2d(in_channels=128, out_channels=128, kernel_size=3, padding=1),
+            nn.ReLU(True),
         )
         self.expansion4 = nn.Sequential(
             nn.Conv2d(in_channels=128, out_channels=64, kernel_size=3, padding=1),
+            nn.ReLU(True),
             nn.Conv2d(in_channels=64, out_channels=64, kernel_size=3, padding=1),
-            nn.Conv2d(in_channels=64, out_channels=2, kernel_size=1)
+            nn.ReLU(True),
+            nn.Conv2d(in_channels=64, out_channels=2, kernel_size=1),
+
         )
 
 
