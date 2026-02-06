@@ -16,11 +16,11 @@ def main():
         device = torch.device("cpu")
 
     # Hyperparams
-    num_epochs = 25
+    num_epochs = 30
     batch_size = 4 # keeping small to save in memory
-    learning_rate = 0.01
-    momentum = 0.9
-    weight_decay = 5e-3
+    learning_rate = 0.001
+    momentum = 0.99
+    weight_decay = 5e-4
 
     spatial_transforms = v2.Compose([   
     v2.RandomAffine(degrees=180, translate=(0.1, 0.1)),
@@ -36,7 +36,7 @@ def main():
         v2.PILToTensor(),
     ])
 
-    alexnet_model = UNetModel(device, log=False)
+    alexnet_model = UNetModel(device, log=True)
     alexnet_model.train(root_directory, num_epochs, batch_size, learning_rate, momentum, weight_decay, spatial_transforms, color_transforms, validation_transforms)
 
 if __name__ == "__main__":

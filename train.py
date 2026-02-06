@@ -17,7 +17,7 @@ class UNetModel:
 
     def train(self, root_directory, num_epochs, batch_size, learning_rate, momentum, weight_decay, spatial_transforms, color_transforms, validation_transforms):
         if self.log:
-            wandb_log = self.init_logging()
+            wandb_log = self.init_logging(batch_size, learning_rate, momentum, weight_decay, num_epochs)
 
         optimizer = torch.optim.SGD(self.model.parameters(), lr=learning_rate, momentum=momentum, weight_decay=weight_decay)
         
@@ -34,19 +34,22 @@ class UNetModel:
             # begin training loop 
             self.model.train()
             running_loss = 0.0
-            for i, (input, labels) in enumerate(tqdm(train_dataloader, desc=f"Epoch {epoch+1}")):
+            for i, (input, labels, weight_map) in enumerate(tqdm(train_dataloader, desc=f"Epoch {epoch+1}")):
                 assert self.model.training, 'make sure the network is in train mode with `.train()`'
 
                 optimizer.zero_grad() # zero out the gradient from previous batches
                 
                 input = input.to(self.device)
                 labels = labels.squeeze(1).long().to(self.device)
+                weight_map = weight_map.to(self.device)
 
                 output = self.model(input) # Predictions
 
                 # class_weights = torch.tensor([0.3, 0.7]).to(self.device) 
                 # loss = F.cross_entropy(output, labels, weight=class_weights)
-                loss = F.cross_entropy(output, labels)
+                # loss = F.cross_entropy(output, labels)
+                loss = F.cross_entropy(output, labels, reduction='none')  # (B, 1, H, W)
+                loss = (loss * weight_map.squeeze(1)).mean()
 
                 loss.backward() # backprop step
                 optimizer.step() # SGD optimizing step
@@ -77,7 +80,7 @@ class UNetModel:
 
         self.model.eval() # set model to eval mode so the weights won't get changed
         with torch.no_grad():
-            for input, labels in tqdm(val_dataloader, desc="Validation Run"):
+            for input, labels, weight_loss in tqdm(val_dataloader, desc="Validation Run"):
                 input = input.to(self.device)
                 labels = labels.squeeze(1).long().to(self.device)
 
@@ -96,7 +99,7 @@ class UNetModel:
 
         return avg_loss, pixel_accuracy
     
-    def init_logging(self, learning_rate, momentum, weight_decay, num_epochs):
+    def init_logging(self, batch_size, learning_rate, momentum, weight_decay, num_epochs):
         wandb_log = wandb.init(
             entity="wtoth21",
             # Set the wandb project where this run will be logged.
@@ -105,6 +108,7 @@ class UNetModel:
             config={
                 "architecture": "unet",
                 "dataset": "EM stacks challenge - ISBI 2012",
+                "batch_size": batch_size,
                 "learning_rate": learning_rate,
                 "momentum": momentum,
                 "l2 regularization": weight_decay,
