@@ -70,6 +70,7 @@ class UNet(nn.Module):
             nn.Conv2d(in_channels=64, out_channels=2, kernel_size=1),
 
         )
+        self.init_weights()
 
 
     def forward(self, x):
@@ -107,3 +108,9 @@ class UNet(nn.Module):
 
         return x
 
+    def init_weights(self):
+        for m in self.modules():
+            if isinstance(m, nn.Conv2d) or isinstance(m, nn.ConvTranspose2d):
+                nn.init.kaiming_normal_(m.weight, mode='fan_in', nonlinearity='relu')
+                if m.bias is not None:
+                    nn.init.zeros_(m.bias)
