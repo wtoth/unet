@@ -23,9 +23,9 @@ class UNetModel:
         
         # Create Datasets 
         training_dataset = ISBIDataset(dataset=f"{root_directory}/train_dataset.csv", spatial_transforms=spatial_transforms, color_transforms=color_transforms)
-        train_dataloader = DataLoader(training_dataset, batch_size=batch_size, shuffle=True)
+        train_dataloader = DataLoader(training_dataset, batch_size=batch_size, shuffle=False)
         val_dataset = ISBIDataset(dataset=f"{root_directory}/test_dataset.csv", spatial_transforms=validation_transforms)
-        val_dataloader = DataLoader(val_dataset, batch_size=batch_size, shuffle=True)
+        val_dataloader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
         
         best_loss = float("inf")
         global_steps = 0

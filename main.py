@@ -1,6 +1,12 @@
 import torch
 from train import UNetModel
 from torchvision.transforms import v2
+import random
+import numpy as np
+
+random.seed(42)
+np.random.seed(42)
+torch.manual_seed(42)
 
 def main():
     root_directory = "processed_data"
@@ -16,7 +22,7 @@ def main():
         device = torch.device("cpu")
 
     # Hyperparams
-    num_epochs = 30
+    num_epochs = 40
     batch_size = 4 # keeping small to save in memory
     learning_rate = 0.001
     momentum = 0.99
@@ -25,11 +31,11 @@ def main():
     spatial_transforms = v2.Compose([   
     v2.RandomAffine(degrees=180, translate=(0.1, 0.1)),
     v2.PILToTensor(),
-    v2.ElasticTransform(alpha=100.0, sigma=10.0)
+    v2.ElasticTransform(alpha=50.0, sigma=5.0)
     ])
 
     color_transforms = v2.Compose([
-        v2.ColorJitter(brightness=0.1, contrast=0.1),
+        v2.ColorJitter(brightness=0.2, contrast=0.2),
     ])
 
     validation_transforms = v2.Compose([
